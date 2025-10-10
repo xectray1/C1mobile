@@ -213,7 +213,7 @@ local function ToggleAutoTrash(enabled)
 
             if not FoundTrashBag then
                 OrionLib:MakeNotification({
-                    Name = "error",
+                    Name = "success",
                     Content = "collected all trash",
                     Image = "rbxassetid://7733658504",Time = 5
                 })
@@ -627,4 +627,68 @@ Tab1:AddSlider({
     Callback = function(value)
         WalkSpeedMultiplier = value
     end,
+})
+local player = game.Players.LocalPlayer
+local dadConnection
+local CDConnection
+local AutoDiedRunning = false
+local function OnChaseDoorChanged(CDBoolean, dad)
+	if CDConnection then CDConnection:Disconnect() end
+	CDConnection = CDBoolean.Changed:Connect(function(newValue)
+		if newValue == true then
+			local humanoid = dad:FindFirstChildOfClass("Humanoid")
+			if humanoid then
+				humanoid.Health = 0
+			end
+		end
+	end)
+	if CDBoolean.Value == true then
+		local humanoid = dad:FindFirstChildOfClass("Humanoid")
+		if humanoid then
+			humanoid.Health = 0
+		end
+	end
+end
+local function SetupPossessedDad(dad)
+	local chaseDoor = dad:FindFirstChild("ChaseDoor")
+	if chaseDoor and chaseDoor:IsA("BoolValue") then
+		OnChaseDoorChanged(chaseDoor, dad)
+	else
+		dad.ChildAdded:Connect(function(child)
+			if child.Name == "ChaseDoor" and child:IsA("BoolValue") then
+				OnChaseDoorChanged(child, dad)
+			end
+		end)
+	end
+	if not AutoDiedRunning then
+		AutoDiedRunning = true
+		task.spawn(function()
+			local humanoid = dad:WaitForChild("Humanoid")
+			while AutoDiedRunning and humanoid and humanoid.Parent do
+				humanoid.Health = 100
+				task.wait(0.5)
+				humanoid.Health = 0
+				task.wait(0.5)
+			end
+		end)
+	end
+end
+function GodmodeDadEnabled()
+	local DadFolder = Workspace:WaitForChild("Game"):WaitForChild("dad")
+	local PossessedDad = DadFolder:FindFirstChild("PossesedDad")
+	if PossessedDad then
+		SetupPossessedDad(PossessedDad)
+	else
+		dadConnection = DadFolder.ChildAdded:Connect(function(child)
+			if child.Name == "PossesedDad" then
+				SetupPossessedDad(child)
+			end
+		end)
+	end
+end
+Tab1:AddButton({
+    Name = "godmode",
+    Callback = function()
+        GodmodeDadEnabled()
+    end
 })
