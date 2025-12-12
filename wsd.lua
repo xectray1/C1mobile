@@ -1,4 +1,3 @@
-
 if not (game:IsLoaded()) then game.Loaded:Wait(); end;
 local OrionLib = loadstring(game:HttpGet(("https://raw.githubusercontent.com/Giangplay/Script/main/Orion_Library_PE_V2.lua")))()
 local ch1 = "chapter 1"
@@ -696,3 +695,4 @@ Tab1:AddButton({
         GodmodeDadEnabled()
     end
 })
+
